@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: postgres_dev
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin123
+      - POSTGRES_DB=reviews_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - review-network
+    restart: unless-stopped
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n_dev
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_HOST=localhost
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - NODE_ENV=development
+    volumes:
+      - ~/.n8n:/home/node/.n8n
+    networks:
+      - review-network
+    restart: unless-stopped
+
+  review_api:
+    build: .
+    container_name: n8n_api_reviews
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=admin123
+      - DB_NAME=reviews_db
+    networks:
+      - review-network
+    depends_on:
+      - postgres
+      - n8n
+    restart: unless-stopped
+
+networks:
+  review-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
