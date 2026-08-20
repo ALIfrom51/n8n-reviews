@@ -1,0 +1,382 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -1200,
+        48
+      ],
+      "id": "cf8e2735-a17d-49a1-9ad1-33c84803908f",
+      "name": "When chat message received",
+      "webhookId": "4472a710-7866-4b0b-bbfa-70a030062734"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=Classe ce message en POSITIF, NÉGATIF, ou NEUTRE.\nRéponds SEULEMENT: POSITIF ou NÉGATIF ou NEUTRE\n\nMessage: {input}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -928,
+        48
+      ],
+      "id": "7d254e8f-cbfe-4ac2-beac-8a2aa306bd84",
+      "name": "AI Agent",
+      "alwaysOutputData": false,
+      "executeOnce": false
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -928,
+        272
+      ],
+      "id": "d23e62ef-04cb-41a0-af7f-2a026d619e0a",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0004b0b8-478c-4197-b1cd-983b15a8b5fa",
+              "leftValue": "={{ $json.review.sentiment }}",
+              "rightValue": "NÉGATIF",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -272,
+        48
+      ],
+      "id": "d4e7b76a-3511-4f41-98f5-b3ddc5f1ac3f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "1988689073",
+        "text": "Avis critique",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "aa9b6b4d-1135-492f-9d55-13d8ec2d99ee",
+      "name": "Send a text message",
+      "webhookId": "08db71b7-8abe-420f-91a3-deba6195ce84",
+      "credentials": {
+        "telegramApi": {
+          "id": "YF7VW5zNdCKcH2Ka",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "groq/compound-mini",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        -1056,
+        272
+      ],
+      "id": "c457127c-3daa-48b6-acd0-52c20f0f6aa3",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "NcVoTNY6LneEMdRm",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "alirebbouh946@gmail.com",
+        "subject": "Clients",
+        "message": "Avis ajouté",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        160
+      ],
+      "id": "78c30b2b-d345-453f-8778-9e0050ae5b24",
+      "name": "Send a message",
+      "webhookId": "e901722e-2bfa-4d94-a545-71f221412779",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "Uwh586qYMk6UFDzj",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1EIV3nOgiCRXZnTnCbyYmdwcF7QZ6pta4KkP2zlJYv_g/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "https://docs.google.com/spreadsheets/d/1EIV3nOgiCRXZnTnCbyYmdwcF7QZ6pta4KkP2zlJYv_g/edit?gid=0#gid=0",
+          "mode": "url"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Message": "={{ $('When chat message received').item.json.chatInput }}",
+            "Sentiment": "={{ $json.output }}",
+            "Date": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Message",
+              "displayName": "Message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Sentiment",
+              "displayName": "Sentiment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Date",
+              "displayName": "Date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        64
+      ],
+      "id": "2da99ac9-74f5-44ba-a138-1b2601a193cd",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HyQ7rXiEPyeaOTL2",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://review_api:3000/api/reviews",
+        "sendHeaders": true,
+        "specifyHeaders": "json",
+        "jsonHeaders": "={\n  \"Authorization\": \"Bearer {{ $json.token }}\",\n  \"Content-Type\": \"application/json\"\n}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"{{ $('When chat message received').item.json.chatInput }}\",\n  \"sentiment\": \"{{ $('AI Agent').item.json.output }}\",\n  \"channel\": \"n8n\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -432,
+        48
+      ],
+      "id": "9d6b230e-7a16-495f-9e13-950681abe8e4",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://review_api:3000/auth/login",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n  \"username\": \"n8n_bot\",\n  \"password\": \"n8n_secret_2026\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -608,
+        48
+      ],
+      "id": "7d3d3bbc-c290-420c-bdc0-1d8231c59b64",
+      "name": "HTTP Request1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6c67ccf3-24f5-4002-8b81-a12a37106f47",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "277f1d3b1355ab24e562031bb4d833c4b7cac372c0717b0c3f3af4c9a51100c5"
+  },
+  "id": "hvbcGA4XEZxureFg",
+  "tags": []
+}
